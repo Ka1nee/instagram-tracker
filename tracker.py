@@ -50,7 +50,6 @@ def login(page):
 
     page.wait_for_timeout(8000)
 
-
 def get_profile(page):
     page.goto(f"https://www.instagram.com/{TARGET_USERNAME}/")
 
