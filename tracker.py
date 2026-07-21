@@ -53,9 +53,11 @@ def login(page):
 def get_profile(page):
     page.goto(f"https://www.instagram.com/{TARGET_USERNAME}/")
 
+def get_profile(page):
+    page.goto(...)
     page.wait_for_timeout(5000)
-    def get_counts(page):
 
+def get_counts(page):
     followers = None
     following = None
 
