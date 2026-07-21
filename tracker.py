@@ -54,8 +54,8 @@ def login(page):
     print(page.title())
     print(page.url)
 
-    page.locator("input[name='username']").fill(USERNAME)
-    page.locator("input[name='password']").fill(PASSWORD)
+    page.get_by_label("Mobile number, username or email").fill(USERNAME)
+page.get_by_label("Password").fill(PASSWORD)
 
     page.locator("button[type='submit']").click()
 
