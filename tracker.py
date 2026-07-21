@@ -44,7 +44,6 @@ def save_state(data):
 
 
 def login(page):
-    def login(page):
     page.goto(
         "https://www.instagram.com/accounts/login/",
         wait_until="networkidle"
