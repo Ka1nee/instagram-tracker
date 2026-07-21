@@ -8,6 +8,11 @@ PASSWORD = os.getenv("IG_PASSWORD")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
+print("USERNAME =", repr(USERNAME))
+print("PASSWORD =", repr(PASSWORD))
+print("TOKEN =", "OK" if TELEGRAM_TOKEN else None)
+print("CHAT =", repr(CHAT_ID))
+
 TARGET_USERNAME = "aycuccee"
 
 STATE_FILE = "state.json"
