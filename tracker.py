@@ -55,12 +55,11 @@ def login(page):
     print(page.url)
 
     page.get_by_label("Mobile number, username or email").fill(USERNAME)
-page.get_by_label("Password").fill(PASSWORD)
-
+    page.get_by_label("Password").fill(PASSWORD)
     page.get_by_role("button", name="Log in").click()
 
     page.wait_for_timeout(8000)
-
+    
 def get_profile(page):
     page.goto(
         f"https://www.instagram.com/{TARGET_USERNAME}/",
