@@ -57,7 +57,7 @@ def login(page):
     page.get_by_label("Mobile number, username or email").fill(USERNAME)
 page.get_by_label("Password").fill(PASSWORD)
 
-    page.locator("button[type='submit']").click()
+    page.get_by_role("button", name="Log in").click()
 
     page.wait_for_timeout(8000)
 
