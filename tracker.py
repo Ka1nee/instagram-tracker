@@ -44,9 +44,15 @@ def save_state(data):
 
 
 def login(page):
-    page.goto("https://www.instagram.com/accounts/login/")
+    page.goto(
+        "https://www.instagram.com/accounts/login/",
+        wait_until="networkidle"
+    )
 
-    page.wait_for_timeout(5000)
+    page.screenshot(path="login.png")
+
+    print(page.title())
+    print(page.url)
 
     page.locator("input[name='username']").fill(USERNAME)
     page.locator("input[name='password']").fill(PASSWORD)
@@ -56,12 +62,11 @@ def login(page):
     page.wait_for_timeout(8000)
 
 def get_profile(page):
-    page.goto(f"https://www.instagram.com/{TARGET_USERNAME}/")
-
-def get_profile(page):
-    page.goto(...)
+    page.goto(
+        f"https://www.instagram.com/{TARGET_USERNAME}/",
+        wait_until="networkidle"
+    )
     page.wait_for_timeout(5000)
-
 def get_counts(page):
     followers = None
     following = None
