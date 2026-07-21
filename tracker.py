@@ -45,14 +45,16 @@ def save_state(data):
 
 def login(page):
     page.goto(
-        "https://www.instagram.com/accounts/login/",
-        wait_until="networkidle"
-    )
+    "https://www.instagram.com/accounts/login/",
+    wait_until="networkidle"
+)
 
-    page.screenshot(path="login.png")
+page.screenshot(path="login.png")
 
-    print(page.title())
-    print(page.url)
+print(page.content())
+
+print(page.title())
+print(page.url)
 
     page.get_by_placeholder("Mobile number, username or email").fill(USERNAME)
 page.get_by_placeholder("Password").fill(PASSWORD)
