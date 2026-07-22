@@ -47,9 +47,14 @@ def get_instagram_followers_rapidapi(username):
         # GET yerine POST isteği gönderiyoruz
         response = requests.post(url, data=payload, headers=headers, timeout=15)
         
-        if response.status_code == 200:
+      if response.status_code == 200:
             data = response.json()
             print(f"API Yanıtı: {data}")
+
+            # API'den geçici sunucu hatası dönüp dönmediğini kontrol ediyoruz
+            if isinstance(data, dict) and "error" in data:
+                print(f"⚠️ RapidAPI Sunucu Uyarısı: {data['error']}")
+                return None
 
             # Yanıt yapısındaki toplam takipçi sayısını çekiyoruz
             if isinstance(data, dict):
