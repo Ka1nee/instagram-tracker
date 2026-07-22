@@ -21,24 +21,34 @@ def send_telegram_message(message):
 
 def get_instagram_followers_rapidapi(username):
     if not RAPIDAPI_KEY:
-        print("RapidAPI anahtarı bulunamadı!")
+        print("❌ RAPIDAPI_KEY bulunamadı!")
         return None
 
-    # Seçtiğin RapidAPI servisinin URL ve Header yapılandırması
-    url = f"https://instagram-data1.p.rapidapi.com/user/info"
+    # Abone olduğun servisin Endpoint ve Header yapısı
+    url = "https://instagram-scraper-stable-api.p.rapidapi.com/user_info.php"
     querystring = {"username": username}
 
     headers = {
-        "X-RapidAPI-Key": RAPIDAPI_KEY,
-        "X-RapidAPI-Host": "instagram-data1.p.rapidapi.com"
+        "x-rapidapi-key": RAPIDAPI_KEY,
+        "x-rapidapi-host": "instagram-scraper-stable-api.p.rapidapi.com"
     }
 
     try:
         response = requests.get(url, headers=headers, params=querystring, timeout=15)
         if response.status_code == 200:
             data = response.json()
-            # Servisin döndürdüğü JSON yapısına göre takipçi alanını seçiyoruz
-            return data.get("follower_count") or data.get("followers")
+            
+            # Servisin döndürdüğü JSON yapısına göre takipçi sayısını çekiyoruz
+            # Farklı servis yapılarına uyum sağlamak için alternatif alanlar kontrol ediliyor
+            if "follower_count" in data:
+                return data["follower_count"]
+            elif "followers" in data:
+                return data["followers"]
+            elif "data" in data and "follower_count" in data["data"]:
+                return data["data"]["follower_count"]
+            else:
+                print(f"Yanıt alındı ancak takipçi alanı bulunamadı: {data}")
+                return None
         else:
             print(f"RapidAPI Hata Kodu: {response.status_code}")
             return None
@@ -66,6 +76,7 @@ def main():
 
     print(f"Eski Sayı: {old_followers} | Yeni Sayı: {current_followers}")
 
+    # İlk başarılı çalıştırma veya sayı değişikliği durumu
     if old_followers is None or old_followers == 0:
         message = f"🎉 **Sistem Aktif!**\n\n👤 **Hedef:** @{TARGET_USER}\n📊 **Başlangıç Takipçisi:** {current_followers:,}"
         send_telegram_message(message)
@@ -74,6 +85,8 @@ def main():
         change_text = f"+{diff}" if diff > 0 else f"{diff}"
         message = f"📢 **Takipçi Sayısı Değişti!**\n\n👤 **Hedef:** @{TARGET_USER}\n📊 **Yeni Takipçi:** {current_followers:,} ({change_text})"
         send_telegram_message(message)
+    else:
+        print("Takipçi sayısında değişiklik yok.")
 
     with open(FILE_PATH, "w") as f:
         f.write(str(current_followers))
