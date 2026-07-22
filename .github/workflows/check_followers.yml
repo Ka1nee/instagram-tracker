@@ -2,15 +2,16 @@ name: Instagram Takipçi Kontrolü
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
-  workflow_dispatch:
+    # Her 3 saatte bir otomatik çalışır (00:00, 03:00, 06:00, 09:00...)
+    - cron: '0 */3 * * *'
+  workflow_dispatch: # İstediğinde elle çalıştırma butonu
 
 jobs:
   check-followers:
     runs-on: ubuntu-latest
     
     permissions:
-      contents: write
+      contents: write # Takipçi dosyasını repoya kaydetmek için gerekli izin
 
     steps:
     - name: Repoyu Klonla
@@ -41,7 +42,7 @@ jobs:
         
         if [ -f follower_count.txt ]; then
           git add follower_count.txt
-          git commit -m "Takipçi sayısı güncellendi [skip ci]" || echo "Değişiklik yok."
+          git commit -m "Takipçi sayısı güncellendi [skip ci]" || echo "Değişiklik yok, commit atlandı."
           git push
         else
           echo "follower_count.txt bulunamadı."
