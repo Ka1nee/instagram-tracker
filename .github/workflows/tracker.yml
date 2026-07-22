@@ -30,12 +30,17 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python tracker.py
 
-      - name: Upload screenshot
+      - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: login
-          path: login.png
+          name: debug-screenshots
+          path: |
+            login.png
+            before_login_click.png
+            after_login.png
+            profile.png
+          if-no-files-found: ignore
 
       - name: state.json'ı commit et
         run: |
