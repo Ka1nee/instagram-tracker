@@ -24,45 +24,29 @@ def get_instagram_followers_rapidapi(username):
         print("❌ RAPIDAPI_KEY bulunamadı!")
         return None
 
-    url = "https://instagram-scraper-stable-api.p.rapidapi.com/get_ig_user_followers_v2.php"
-
-    profile_url = f"https://www.instagram.com/{username}/" if not username.startswith("http") else username
-
-    payload = {
-        "username_or_url": profile_url,
-        "data": "followers",
-        "amount": "12",
-        "pagination_token": ""
-    }
+    # Instagram Data API endpoint'i
+    url = "https://instagram-data1.p.rapidapi.com/user/info"
+    querystring = {"username": username}
 
     headers = {
         "x-rapidapi-key": RAPIDAPI_KEY,
-        "x-rapidapi-host": "instagram-scraper-stable-api.p.rapidapi.com",
-        "Content-Type": "application/x-www-form-urlencoded"
+        "x-rapidapi-host": "instagram-data1.p.rapidapi.com"
     }
 
     try:
-        response = requests.post(url, data=payload, headers=headers, timeout=15)
+        response = requests.get(url, headers=headers, params=querystring, timeout=15)
         
         if response.status_code == 200:
             data = response.json()
             print(f"API Yanıtı: {data}")
 
-            # RapidAPI tarafında geçici sunucu hatası kontrolü
-            if isinstance(data, dict) and "error" in data:
-                print(f"⚠️ RapidAPI Sunucu Yanıtı: {data['error']}")
-                return None
-
-            # Yanıt yapısındaki takipçi sayısını ayıklama
             if isinstance(data, dict):
-                if "count" in data:
-                    return data["count"]
-                elif "total_count" in data:
-                    return data["total_count"]
-                elif "follower_count" in data:
+                if "follower_count" in data:
                     return data["follower_count"]
-                elif "data" in data and isinstance(data["data"], dict):
-                    return data["data"].get("count") or data["data"].get("follower_count")
+                elif "followers" in data:
+                    return data["followers"]
+                elif "collector" in data and isinstance(data["collector"], list):
+                    return data["collector"][0].get("follower_count")
             
             print("❌ Yanıt alındı ancak takipçi sayısı alanı ayıklanamadı.")
             return None
