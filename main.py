@@ -26,10 +26,8 @@ def get_instagram_followers_rapidapi(username):
 
     url = "https://instagram-scraper-stable-api.p.rapidapi.com/get_ig_user_followers_v2.php"
 
-    # Hedef hesabı profil URL'si formatına çeviriyoruz
     profile_url = f"https://www.instagram.com/{username}/" if not username.startswith("http") else username
 
-    # POST için gerekli form verisi
     payload = {
         "username_or_url": profile_url,
         "data": "followers",
@@ -44,19 +42,18 @@ def get_instagram_followers_rapidapi(username):
     }
 
     try:
-        # GET yerine POST isteği gönderiyoruz
         response = requests.post(url, data=payload, headers=headers, timeout=15)
         
-      if response.status_code == 200:
+        if response.status_code == 200:
             data = response.json()
             print(f"API Yanıtı: {data}")
 
-            # API'den geçici sunucu hatası dönüp dönmediğini kontrol ediyoruz
+            # RapidAPI tarafında geçici sunucu hatası kontrolü
             if isinstance(data, dict) and "error" in data:
-                print(f"⚠️ RapidAPI Sunucu Uyarısı: {data['error']}")
+                print(f"⚠️ RapidAPI Sunucu Yanıtı: {data['error']}")
                 return None
 
-            # Yanıt yapısındaki toplam takipçi sayısını çekiyoruz
+            # Yanıt yapısındaki takipçi sayısını ayıklama
             if isinstance(data, dict):
                 if "count" in data:
                     return data["count"]
