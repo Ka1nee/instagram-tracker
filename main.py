@@ -24,33 +24,43 @@ def get_instagram_followers_rapidapi(username):
         print("❌ RAPIDAPI_KEY bulunamadı!")
         return None
 
-    # Doğruladığımız URL
     url = "https://instagram-scraper-stable-api.p.rapidapi.com/get_ig_user_followers_v2.php"
-    querystring = {"username": username}
+
+    # Hedef hesabı profil URL'si formatına çeviriyoruz
+    profile_url = f"https://www.instagram.com/{username}/" if not username.startswith("http") else username
+
+    # POST için gerekli form verisi
+    payload = {
+        "username_or_url": profile_url,
+        "data": "followers",
+        "amount": "12",
+        "pagination_token": ""
+    }
 
     headers = {
         "x-rapidapi-key": RAPIDAPI_KEY,
-        "x-rapidapi-host": "instagram-scraper-stable-api.p.rapidapi.com"
+        "x-rapidapi-host": "instagram-scraper-stable-api.p.rapidapi.com",
+        "Content-Type": "application/x-www-form-urlencoded"
     }
 
     try:
-        response = requests.get(url, headers=headers, params=querystring, timeout=15)
+        # GET yerine POST isteği gönderiyoruz
+        response = requests.post(url, data=payload, headers=headers, timeout=15)
+        
         if response.status_code == 200:
             data = response.json()
-            
-            # Gelen yanıtı konsolda görelim (Debug için)
             print(f"API Yanıtı: {data}")
 
-            # Olası yanıt yapılarını kontrol etme
+            # Yanıt yapısındaki toplam takipçi sayısını çekiyoruz
             if isinstance(data, dict):
-                if "follower_count" in data:
-                    return data["follower_count"]
-                elif "followers" in data:
-                    return data["followers"]
-                elif "count" in data:
+                if "count" in data:
                     return data["count"]
+                elif "total_count" in data:
+                    return data["total_count"]
+                elif "follower_count" in data:
+                    return data["follower_count"]
                 elif "data" in data and isinstance(data["data"], dict):
-                    return data["data"].get("follower_count") or data["data"].get("followers")
+                    return data["data"].get("count") or data["data"].get("follower_count")
             
             print("❌ Yanıt alındı ancak takipçi sayısı alanı ayıklanamadı.")
             return None
@@ -82,7 +92,6 @@ def main():
 
     print(f"Eski Sayı: {old_followers} | Yeni Sayı: {current_followers}")
 
-    # İlk başarılı çalıştırma veya değişiklik bildirimi
     if old_followers is None or old_followers == 0:
         message = f"🎉 **Sistem Aktif!**\n\n👤 **Hedef:** @{TARGET_USER}\n📊 **Başlangıç Takipçisi:** {current_followers:,}"
         send_telegram_message(message)
