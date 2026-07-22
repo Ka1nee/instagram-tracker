@@ -1,52 +1,43 @@
-name: Instagram Tracker
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: "*/30 * * * *"
+name: Instagram Takipçi Kontrolü
 
-permissions:
-  contents: write
+on:
+  schedule:
+    # Her 6 saatte bir çalışır
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Manuel tetikleme butonu ekler
 
 jobs:
-  tracker:
+  check-followers:
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write # Takipçi sayısını repoya commit edebilmek için gerekli izin
+
     steps:
-      - uses: actions/checkout@v4
+    - name: Repoyu Klonla
+      uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+    - name: Python Kurulumu
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
 
-      - name: Install packages
-        run: |
-          pip install -r requirements.txt
-          playwright install --with-deps chromium
+    - name: Kütüphaneleri Yükle
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests instaloader
 
-      - name: Run tracker
-        env:
-          IG_USERNAME: ${{ secrets.IG_USERNAME }}
-          IG_PASSWORD: ${{ secrets.IG_PASSWORD }}
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python tracker.py
+    - name: Takipçi Kontrol Betiğini Çalıştır
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        INSTAGRAM_USER: ${{ secrets.INSTAGRAM_USER }}
+      run: python main.py
 
-      - name: Upload screenshots
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-screenshots
-          path: |
-            login.png
-            before_login_click.png
-            after_login.png
-            profile.png
-          if-no-files-found: ignore
-
-      - name: state.json'ı commit et
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add state.json
-          git diff --staged --quiet || git commit -m "Takipçi durumu güncellendi"
-          git pull --rebase
-          git push
+    - name: Güncellenmiş Takipçi Sayısını Repoya Kaydet
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add follower_count.txt
+        git commit -m "Takipçi sayısı güncellendi [skip ci]" || exit 0
+        git push
