@@ -24,8 +24,8 @@ def get_instagram_followers_rapidapi(username):
         print("❌ RAPIDAPI_KEY bulunamadı!")
         return None
 
-    # Abone olduğun servisin Endpoint ve Header yapısı
-    url = "https://instagram-scraper-stable-api.p.rapidapi.com/user_info.php"
+    # Doğruladığımız URL
+    url = "https://instagram-scraper-stable-api.p.rapidapi.com/get_ig_user_followers_v2.php"
     querystring = {"username": username}
 
     headers = {
@@ -38,19 +38,25 @@ def get_instagram_followers_rapidapi(username):
         if response.status_code == 200:
             data = response.json()
             
-            # Servisin döndürdüğü JSON yapısına göre takipçi sayısını çekiyoruz
-            # Farklı servis yapılarına uyum sağlamak için alternatif alanlar kontrol ediliyor
-            if "follower_count" in data:
-                return data["follower_count"]
-            elif "followers" in data:
-                return data["followers"]
-            elif "data" in data and "follower_count" in data["data"]:
-                return data["data"]["follower_count"]
-            else:
-                print(f"Yanıt alındı ancak takipçi alanı bulunamadı: {data}")
-                return None
+            # Gelen yanıtı konsolda görelim (Debug için)
+            print(f"API Yanıtı: {data}")
+
+            # Olası yanıt yapılarını kontrol etme
+            if isinstance(data, dict):
+                if "follower_count" in data:
+                    return data["follower_count"]
+                elif "followers" in data:
+                    return data["followers"]
+                elif "count" in data:
+                    return data["count"]
+                elif "data" in data and isinstance(data["data"], dict):
+                    return data["data"].get("follower_count") or data["data"].get("followers")
+            
+            print("❌ Yanıt alındı ancak takipçi sayısı alanı ayıklanamadı.")
+            return None
         else:
             print(f"RapidAPI Hata Kodu: {response.status_code}")
+            print(f"Hata Detayı: {response.text}")
             return None
     except Exception as e:
         print(f"API isteği başarısız: {e}")
@@ -76,7 +82,7 @@ def main():
 
     print(f"Eski Sayı: {old_followers} | Yeni Sayı: {current_followers}")
 
-    # İlk başarılı çalıştırma veya sayı değişikliği durumu
+    # İlk başarılı çalıştırma veya değişiklik bildirimi
     if old_followers is None or old_followers == 0:
         message = f"🎉 **Sistem Aktif!**\n\n👤 **Hedef:** @{TARGET_USER}\n📊 **Başlangıç Takipçisi:** {current_followers:,}"
         send_telegram_message(message)
