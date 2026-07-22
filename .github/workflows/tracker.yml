@@ -1,14 +1,15 @@
 name: Instagram Tracker
-
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "*/30 * * * *"
+
+permissions:
+  contents: write
 
 jobs:
   tracker:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -19,7 +20,7 @@ jobs:
       - name: Install packages
         run: |
           pip install -r requirements.txt
-          playwright install chromium
+          playwright install --with-deps chromium
 
       - name: Run tracker
         env:
@@ -28,10 +29,19 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python tracker.py
-        
+
       - name: Upload screenshot
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: login
           path: login.png
+
+      - name: state.json'ı commit et
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add state.json
+          git diff --staged --quiet || git commit -m "Takipçi durumu güncellendi"
+          git pull --rebase
+          git push
