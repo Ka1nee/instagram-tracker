@@ -1,10 +1,10 @@
 import os
 import requests
-import json
 
 BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 TARGET_USER = os.environ.get("IG_USERNAME", "instagram")
+RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY")
 
 FILE_PATH = "follower_count.txt"
 
@@ -19,32 +19,39 @@ def send_telegram_message(message):
     except Exception as e:
         print(f"Telegram mesaj hatası: {e}")
 
-def get_instagram_followers(username):
-    # Public profil verisini çekmek için alternatif endpoint
-    url = f"https://www.instagram.com/api/v1/users/web_profile_info/?username={username}"
+def get_instagram_followers_rapidapi(username):
+    if not RAPIDAPI_KEY:
+        print("RapidAPI anahtarı bulunamadı!")
+        return None
+
+    # Seçtiğin RapidAPI servisinin URL ve Header yapılandırması
+    url = f"https://instagram-data1.p.rapidapi.com/user/info"
+    querystring = {"username": username}
+
     headers = {
-        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
-        "X-IG-App-ID": "936619743392459"
+        "X-RapidAPI-Key": RAPIDAPI_KEY,
+        "X-RapidAPI-Host": "instagram-data1.p.rapidapi.com"
     }
-    
+
     try:
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, headers=headers, params=querystring, timeout=15)
         if response.status_code == 200:
             data = response.json()
-            return data["data"]["user"]["edge_followed_by"]["count"]
+            # Servisin döndürdüğü JSON yapısına göre takipçi alanını seçiyoruz
+            return data.get("follower_count") or data.get("followers")
         else:
-            print(f"HTTP Hata Kodu: {response.status_code}")
+            print(f"RapidAPI Hata Kodu: {response.status_code}")
             return None
     except Exception as e:
-        print(f"Veri çekme hatası: {e}")
+        print(f"API isteği başarısız: {e}")
         return None
 
 def main():
     print(f"Hedef hesap kontrol ediliyor: @{TARGET_USER}")
-    current_followers = get_instagram_followers(TARGET_USER)
+    current_followers = get_instagram_followers_rapidapi(TARGET_USER)
     
     if current_followers is None:
-        print("❌ Instagram verisi anlık olarak çekilemedi. Bir sonraki periyot bekleniyor.")
+        print("❌ Takipçi verisi çekilemedi.")
         if not os.path.exists(FILE_PATH):
             with open(FILE_PATH, "w") as f:
                 f.write("0")
@@ -59,20 +66,15 @@ def main():
 
     print(f"Eski Sayı: {old_followers} | Yeni Sayı: {current_followers}")
 
-    # İlk başarılı kurulum mesajı
     if old_followers is None or old_followers == 0:
-        message = f"🎉 **Sistem Tamamen Hazır!**\n\n👤 **Hedef:** @{TARGET_USER}\n📊 **Başlangıç Takipçisi:** {current_followers:,}"
+        message = f"🎉 **Sistem Aktif!**\n\n👤 **Hedef:** @{TARGET_USER}\n📊 **Başlangıç Takipçisi:** {current_followers:,}"
         send_telegram_message(message)
-    # Takipçi sayısı değiştiyse bildirim gönder
     elif current_followers != old_followers:
         diff = current_followers - old_followers
         change_text = f"+{diff}" if diff > 0 else f"{diff}"
         message = f"📢 **Takipçi Sayısı Değişti!**\n\n👤 **Hedef:** @{TARGET_USER}\n📊 **Yeni Takipçi:** {current_followers:,} ({change_text})"
         send_telegram_message(message)
-    else:
-        print("Takipçi sayısında değişiklik yok.")
 
-    # Güncel sayıyı kaydet
     with open(FILE_PATH, "w") as f:
         f.write(str(current_followers))
 
