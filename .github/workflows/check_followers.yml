@@ -2,16 +2,15 @@ name: Instagram Takipçi Kontrolü
 
 on:
   schedule:
-    # Her 6 saatte bir çalışır
     - cron: '0 */6 * * *'
-  workflow_dispatch: # Manuel tetikleme butonu ekler
+  workflow_dispatch:
 
 jobs:
   check-followers:
     runs-on: ubuntu-latest
     
     permissions:
-      contents: write # Takipçi sayısını repoya commit edebilmek için gerekli izin
+      contents: write
 
     steps:
     - name: Repoyu Klonla
@@ -22,12 +21,12 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Kütüphaneleri Yükle
+    - name: Bağımlılıkları Yükle
       run: |
         python -m pip install --upgrade pip
         pip install requests instaloader
 
-   - name: Kontrol Kodunu Çalıştır
+    - name: Kontrol Kodunu Çalıştır
       env:
         TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -40,11 +39,10 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         
-        # Sadece dosya varsa ve değişiklik varsa commit yap
         if [ -f follower_count.txt ]; then
           git add follower_count.txt
-          git commit -m "Takipçi sayısı güncellendi [skip ci]" || echo "Değişiklik yok, commit atlandı."
+          git commit -m "Takipçi sayısı güncellendi [skip ci]" || echo "Değişiklik yok."
           git push
         else
-          echo "⚠️ follower_count.txt dosyası bulunamadı, git add atlandı."
+          echo "follower_count.txt bulunamadı."
         fi
