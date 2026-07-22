@@ -1,10 +1,10 @@
 import os
 import requests
+import instaloader
 
 BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 TARGET_USER = os.environ.get("IG_USERNAME", "instagram")
-RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY")
 
 FILE_PATH = "follower_count.txt"
 
@@ -19,48 +19,19 @@ def send_telegram_message(message):
     except Exception as e:
         print(f"Telegram mesaj hatası: {e}")
 
-def get_instagram_followers_rapidapi(username):
-    if not RAPIDAPI_KEY:
-        print("❌ RAPIDAPI_KEY bulunamadı!")
-        return None
-
-    # Instagram Data API endpoint'i
-    url = "https://instagram-data1.p.rapidapi.com/user/info"
-    querystring = {"username": username}
-
-    headers = {
-        "x-rapidapi-key": RAPIDAPI_KEY,
-        "x-rapidapi-host": "instagram-data1.p.rapidapi.com"
-    }
-
+def get_instagram_followers(username):
     try:
-        response = requests.get(url, headers=headers, params=querystring, timeout=15)
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"API Yanıtı: {data}")
-
-            if isinstance(data, dict):
-                if "follower_count" in data:
-                    return data["follower_count"]
-                elif "followers" in data:
-                    return data["followers"]
-                elif "collector" in data and isinstance(data["collector"], list):
-                    return data["collector"][0].get("follower_count")
-            
-            print("❌ Yanıt alındı ancak takipçi sayısı alanı ayıklanamadı.")
-            return None
-        else:
-            print(f"RapidAPI Hata Kodu: {response.status_code}")
-            print(f"Hata Detayı: {response.text}")
-            return None
+        L = instaloader.Instaloader()
+        # Profil nesnesini çekiyoruz (API Key gerekmez)
+        profile = instaloader.Profile.from_username(L.context, username)
+        return profile.followers
     except Exception as e:
-        print(f"API isteği başarısız: {e}")
+        print(f"Instaloader verisi çekilemedi: {e}")
         return None
 
 def main():
     print(f"Hedef hesap kontrol ediliyor: @{TARGET_USER}")
-    current_followers = get_instagram_followers_rapidapi(TARGET_USER)
+    current_followers = get_instagram_followers(TARGET_USER)
     
     if current_followers is None:
         print("❌ Takipçi verisi çekilemedi.")
